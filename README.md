@@ -81,3 +81,11 @@ It’s about combining science, curiosity, and a bit of Nevada spirit — to
 bring the ichthyosaurs of Berlin back into the light.
 
 So grab a map (and maybe an Icky IPA), and let’s go find some fossils.
+
+## 🚩 Project Flag
+
+<p align="center">
+  <img src="assets/paleowave_flag.png" alt="Project PaleoWave Flag" width="75%">
+  <br>
+  <em>The official field emblem of Project PaleoWave — inspired by Nevada’s ancient seas.</em>
+</p>
