@@ -22,9 +22,9 @@ Back then — in the early 1990s — prospecting for fossils meant paper
 maps, long hikes, and plenty of educated guessing. Technology just
 wasn’t there yet.
 
-During those years, my friends and I would unwind at [**Great Basin
+During those years, my friends and I would unwind at [Great Basin
 Brewing Co.](https://www.greatbasinbrewingco.com/about)
- in Reno**, sipping **Ichthyosaur “Icky” IPA** — a tribute to
+ in Reno, sipping **Ichthyosaur “Icky” IPA** — a tribute to
 Nevada’s state fossil and the prehistoric seas that once covered this
 region.
 
