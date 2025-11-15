@@ -15,15 +15,15 @@ base_url <- "https://services9.arcgis.com/RHVPKKiFTONKtxq3/arcgis/rest/services/
 
 since_utc <- as.POSIXct("2024-10-15 00:00:00", tz = "UTC")
 
-# ArcGIS timestamp literal
+# ALL earthquakes (no magnitude filter)
 where_sql <- sprintf(
-  "mag >= 3 AND eventTime >= TIMESTAMP '%s' AND place LIKE '%%USA%%'",
+  "eventTime >= TIMESTAMP '%s' AND place LIKE '%%USA%%'",
   format(since_utc, "%Y-%m-%d %H:%M:%S")
 )
 
 
 # ============================================================
-# 3) Query builder (ESRI JSON, not GeoJSON)
+# 3) Query Builder  (ESRI JSON — attributes included)
 # ============================================================
 build_url <- function(where_clause) {
   modify_url(
@@ -32,7 +32,7 @@ build_url <- function(where_clause) {
       where = where_clause,
       outFields = "*",
       outSR = 4326,
-      f = "json",                  # <-- IMPORTANT: attributes preserved
+      f = "json",
       orderByFields = "eventTime DESC",
       resultRecordCount = 2000
     )
@@ -41,7 +41,7 @@ build_url <- function(where_clause) {
 
 
 # ============================================================
-# 4) Fetch and parse as sf
+# 4) Fetch + convert to sf
 # ============================================================
 attempt_1_url <- build_url(where_sql)
 
@@ -51,18 +51,16 @@ fetch_sf <- function(url) {
 
 quakes <- try(fetch_sf(attempt_1_url), silent = TRUE)
 
-# Fallback if timestamp literal fails (epoch-ms)
+# fallback: epoch-ms
 if (inherits(quakes, "try-error")) {
   epoch_ms <- as.integer(as.numeric(since_utc) * 1000)
   where_epoch <- sprintf(
-    "mag >= 3 AND eventTime >= %d AND place LIKE '%%USA%%'",
-    epoch_ms
+    "eventTime >= %d AND place LIKE '%%USA%%'", epoch_ms
   )
-  attempt_2_url <- build_url(where_epoch)
-  quakes <- fetch_sf(attempt_2_url)
+  quakes <- fetch_sf(build_url(where_epoch))
 }
 
-message(sprintf("Pulled %s features", nrow(quakes)))
+message(sprintf("Pulled %s earthquakes", nrow(quakes)))
 
 
 # ============================================================
@@ -72,54 +70,49 @@ quakes <- st_transform(quakes, 4326)
 
 
 # ============================================================
-# 6) Parse dates, numeric fields, and bins
+# 6) Parse dates + numeric fields
 # ============================================================
 as_posix_arc <- function(x) {
-  # Numeric? treat as epoch-ms
-  if (is.numeric(x)) {
-    as.POSIXct(x / 1000, origin = "1970-01-01", tz = "UTC")
-  } else {
-    suppressWarnings(as.POSIXct(x, tz = "UTC"))
-  }
+  if (is.numeric(x)) as.POSIXct(x/1000, origin="1970-01-01", tz="UTC")
+  else suppressWarnings(as.POSIXct(x, tz="UTC"))
 }
 
 quakes <- quakes %>%
   mutate(
     eventTime_dt = as_posix_arc(eventTime),
     updated_dt   = as_posix_arc(updated),
-    mag = suppressWarnings(as.numeric(mag)),
+    mag   = suppressWarnings(as.numeric(mag)),
     depth = suppressWarnings(as.numeric(depth)),
-    # simple state guess from place field
     state_guess = {
-      m <- stringr::str_match(place, ",\\s*([^,]+)\\s*,\\s*USA\\s*$")
+      m  <- stringr::str_match(place, ",\\s*([^,]+)\\s*,\\s*USA\\s*$")
       sg <- ifelse(!is.na(m[,2]),
                    m[,2],
-                   stringr::str_trim(stringr::word(place, -1, sep = fixed(","))))
+                   stringr::str_trim(stringr::word(place, -1, sep=fixed(","))))
       ifelse(is.na(sg), "Unknown", sg)
-    },
-    mag_bin = cut(
-      mag,
-      breaks = c(3, 4, 5, 6, 10),
-      right = FALSE,
-      labels = c("3.0–3.9", "4.0–4.9", "5.0–5.9", "6+")
-    )
+    }
   )
 
 
 # ============================================================
-# 7) Leaflet color bin + map
+# 7) Color scale for ALL magnitudes
 # ============================================================
-pal <- colorBin("YlOrRd",
-                domain = quakes$mag,
-                bins = c(3, 4, 5, 6, 10),
-                na.color = "#bbbbbb")
+pal <- colorBin(
+  "YlOrRd",
+  domain = quakes$mag,
+  bins = c(0, 1, 2, 3, 4, 5, 6, 10),
+  na.color = "#cccccc"
+)
 
+
+# ============================================================
+# 8) Leaflet map
+# ============================================================
 leaflet(quakes, options = leafletOptions(minZoom = 2)) %>%
   addProviderTiles("CartoDB.Positron") %>%
   addCircleMarkers(
-    radius = ~ scales::rescale(mag, to = c(4, 12),
+    radius = ~ scales::rescale(mag, to = c(3, 12),
                                from = range(mag, na.rm = TRUE)),
-    color  = ~ pal(mag),
+    color = ~ pal(mag),
     fillOpacity = 0.85,
     stroke = FALSE,
     popup = ~ sprintf(
@@ -127,9 +120,11 @@ leaflet(quakes, options = leafletOptions(minZoom = 2)) %>%
       id,
       mag,
       magType,
-      ifelse(is.na(depth), "–", sprintf("%.1f", depth)),
-      ifelse(is.na(eventTime_dt), "–", format(eventTime_dt, "%Y-%m-%d %H:%M")),
+      ifelse(is.na(depth), '–', sprintf('%.1f', depth)),
+      ifelse(is.na(eventTime_dt), '–', format(eventTime_dt, "%Y-%m-%d %H:%M")),
       htmltools::htmlEscape(place)
     )
   ) %>%
-  addLegend(pal = pal, values = ~mag, title = "Magnitude", opacity = 0.9)
+  addLegend(
+    pal = pal, values = ~mag, title = "Magnitude", opacity = 0.95
+  )
