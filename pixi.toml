@@ -1,0 +1,31 @@
+[workspace]
+name = "project-paleowave"
+version = "0.1.0"
+description = "Mapping Nevada's Ancient Seas"
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[dependencies]
+python = "3.12.*"
+jupyterlab = "*"
+ipykernel = "*"
+notebook = "*"
+geopandas = "*"
+rasterio = "*"
+shapely = "*"
+pyproj = "*"
+fiona = "*"
+pdal = "*"
+python-pdal = "*"
+numpy = "*"
+pandas = "*"
+scikit-learn = "*"
+scipy = "*"
+matplotlib = "*"
+seaborn = "*"
+folium = "*"
+requests = "*"
+httpx = "*"
+
+[tasks]
+lab = "jupyter lab"

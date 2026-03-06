@@ -1,0 +1,22 @@
+# DEM tiles and merged raster ? too large for GitHub
+data/dem/
+
+# Large terrain rasters
+data/terrain/terrain_stack.tif
+
+# Model prediction surface ? large
+data/model/prediction_surface.tif
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Pixi
+.pixi/
+
+# Large source geology files
+data/geology/NV_geol_poly.*
+data/geology/NV_structure.*
+data/geology/NV_lith.csv
+data/geology/NV_ref.csv
