@@ -20,3 +20,5 @@ data/geology/NV_geol_poly.*
 data/geology/NV_structure.*
 data/geology/NV_lith.csv
 data/geology/NV_ref.csv
+
+data/terrain/*.tif
