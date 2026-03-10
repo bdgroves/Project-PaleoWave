@@ -1,198 +1,304 @@
-<div align="center">
+# 🌊 Project PaleoWave
 
-![PaleoWave Flag](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/assets/paleowave_flag.png)
+<p align="center">
+  <img src="assets/paleowave_flag.png" width="520" alt="PaleoWave Flag"/>
+</p>
 
-# 🦕 Project PaleoWave
+<p align="center">
+  <b>Machine learning fossil locality prediction · Triassic ichthyosaurs · Central Nevada</b><br>
+  <i>They ruled the Triassic seas. We're using terrain data and a Random Forest to find where they're buried.</i>
+</p>
 
-### Triassic Ichthyosaur Locality Intelligence
-#### Central Nevada · Humboldt Range · Prida · Favret · Luning · Gabbs Formations
-
-[![RF AUC](https://img.shields.io/badge/RF%20AUC-0.906%20★-1a6b5a?style=for-the-badge)](https://github.com/bdgroves/Project-PaleoWave)
-[![LOO Recall](https://img.shields.io/badge/LOO%20Recall-10%2F16%2062.5%25-c9a84c?style=for-the-badge)](https://github.com/bdgroves/Project-PaleoWave)
-[![Prida Core](https://img.shields.io/badge/Prida%2FFavret%20Core-10%2F10%20100%25%20◆-27ae60?style=for-the-badge)](https://github.com/bdgroves/Project-PaleoWave)
-[![LiDAR](https://img.shields.io/badge/LiDAR%20TPI-11%2F20%20Basin%20Floor-7b68ee?style=for-the-badge)](https://github.com/bdgroves/Project-PaleoWave)
-
-*Random Forest terrain model predicting undiscovered Triassic ichthyosaur fossil localities from USGS 3DEP terrain data and PBDB occurrence records. 50 priority targets ranked by composite score across the TRc formation extent in central Nevada.*
-
-</div>
-
----
-
-## 🌊 What Is PaleoWave?
-
-Middle–Late Triassic Nevada (205–252 Ma) was a shallow marine sea. Ichthyosaurs died, sank, and were entombed in carbonate sediment. Today that limestone is exposed across the Humboldt Range as the TRc formation — and 240 million years of erosion are slowly uncovering bone.
-
-PaleoWave trains a machine learning model on 27 PBDB ichthyosaur records from 18 unique localities, learns the terrain signature of known sites, and scores 50 candidate locations across the TRc formation extent. Phase 2 added 15m LiDAR-derived TPI to validate terrain geometry at each target.
-
-**Anchor site:** Berlin-Ichthyosaur State Park (~40.1°N) — the world's largest ichthyosaur assemblage, equivalent role to McBones for IceWave.
+<p align="center">
+  <img src="https://img.shields.io/badge/Phase-3%20Complete-1a6b5a?style=flat-square"/>
+  <img src="https://img.shields.io/badge/North%20LOO-65.2%25-c9a84c?style=flat-square"/>
+  <img src="https://img.shields.io/badge/South%20LOO-71.4%25-c9a84c?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Targets-50-0d2b1f?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Status-Field%20Ready-1a6b5a?style=flat-square"/>
+</p>
 
 ---
 
-## 🛰️ LiDAR TPI Analysis — Notebook 05
+## The Setup
 
-TPI (Topographic Position Index) at 15m resolution from USGS 3DEP measures how much higher or lower a pixel is than its 1500m neighborhood. Known ichthyosaur sites show strongly **negative** TPI — fossil exposure is driven by basin exhumation, not ridge erosion.
+Two hundred and forty million years ago, Nevada was the bottom of a warm shallow sea. Giant marine reptiles — ichthyosaurs up to 15 meters long — cruised these waters, hunted, died, and sank into the carbonate mud. Then a continent happened. Basin and Range tectonics folded and faulted the seafloor into the desert mountain ranges we drive past on I-80. Erosion has been working on those limestone layers ever since, slowly uncovering the bones.
 
-**Known site TPI: mean −42.3m · median −59.8m · 22/27 points negative**
+Berlin-Ichthyosaur State Park found some of them. The Paleobiology Database records 30 confirmed localities across four formations. But the Triassic marine formation (TRc) covers hundreds of square kilometers of central Nevada outback — sun-hammered, roadless, and largely unwalked by paleontologists.
 
-**11 of 20 top targets confirmed as basin/exhumation terrain.**
+**PaleoWave asks: where else should we be looking?**
 
-### P01 — v1 Priority #1 (TPI-penalized in v2)
-*40.4047°N, 118.2439°W · TPI=+130.1m · 52m from TRc · v1 score=1.000 → v2 #4*
-
-![P01 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P01.png)
-
-> **Ridge crest terrain** — TPI=+130m places this target on the Humboldt Range backbone, not a basin floor. High ML probability and tight formation proximity drove the v1 ranking. The v2 TPI penalty (-0.05) correctly demotes it. The formation here may be dipping away from surface exposure.
+We trained a Random Forest on the terrain signature of every known locality — elevation, slope, aspect, ruggedness, and topographic position — and used it to score every candidate pixel within the TRc formation extent. Three phases in, we have 50 priority targets, a field report, a most-wanted list, and 20 LiDAR terrain analyses of the top candidates.
 
 ---
 
-### P02 — v1 Priority #2
-*40.2092°N, 117.5878°W · TPI=+105.1m · 992m from TRc · v1 score=0.895 → v2 #9*
+## The Model
 
-![P02 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P02.png)
+### What it does
 
-> **Ridge crest terrain** — 992m from TRc with strong ML probability, but positive TPI indicates upland position. No TPI adjustment applied (992m is inside 15km threshold but TPI > +3m triggers -0.05 penalty). Rank dropped 7 places in v2.
+Ichthyosaur fossils don't turn up at random. They appear where Triassic limestone is being actively exhumed — basin floors and lower slopes where erosion strips overburden and exposes bone-bearing horizons. The terrain signal is real and learnable. Known sites cluster at specific elevation bands, on moderate slopes, in rugged dissected terrain, and disproportionately in **topographic basins** (negative TPI). We teach a Random Forest that signature, then ask it to find it everywhere else in the formation.
 
----
+### v3 — Formation-Stratified with TPI as Direct Feature
 
-### P03 — v1 Priority #3
-*40.5503°N, 118.2325°W · TPI=+4.4m · 1,361m from TRc · v1 score=0.895 → v2 #14*
+Version 3 is the most significant model change since v1. Two upgrades:
 
-![P03 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P03.png)
+**1. Two submodels.** The Prida and Favret formations (north, ≥39.5°N) are geologically and geographically distinct from Luning and Gabbs (south, <39.5°N). Previous versions trained a single model across both domains — which worked for the north but predicted zero of six Luning localities correctly. v3 trains separate Random Forests for each domain. The south model's LOO recall jumps from 0% to 71.4%.
 
-> **Upper slope terrain** — marginally positive TPI, sitting on the formation margin. The hillshade shows dissected limestone terrain to the east with flatter basin floor approaching from the west. TPI penalty -0.05 applied; dropped 11 places in v2.
+**2. TPI as a direct feature.** In v2, Topographic Position Index was a hand-crafted post-hoc rule: +0.10 if TPI < −10m, −0.05 if TPI > +3m, and so on. In v3, TPI is column five of the feature matrix. The model learns the basin/ridge relationship from training data. Candidates that were *only* high because of the manual rule get exposed and demoted. Candidates with genuine multi-feature basin signal get promoted — including one (v3#2) that didn't even make the v2 top-50.
 
----
+```
+Features v3:  elevation_m · slope_deg · aspect_deg · tri · tpi
+RF params:    n=500 trees · max_depth=6 · balanced class weights · seed=42
+```
 
-## 📊 Model Performance
-
-| Version | Features | AUC | LOO Recall | Status |
-|:--------|:---------|:---:|:----------:|:-------|
-| **v1** | elevation, slope, aspect, TRI | **0.906** | — | Baseline |
-| **v2** | v1 + TPI post-hoc adj | — | **10/16 (62.5%)** | ★ Active |
-| v2 Prida/Favret core | v1 + TPI | — | **10/10 (100%)** | ◆ Sub-region |
-
-- **Composite score:** ML probability + geo_bonus (0–0.20 by dist to TRc) + TPI adj (±0.10 within 15km)
-- **TPI adjustment:** +0.10 if TPI < −10m · +0.05 if TPI < −3m · −0.05 if TPI > +3m · 0.00 beyond 15km
-- **Background:** 10:1 random pixels (training) · 982-point 0.1° grid with 25km exclusion buffer (LOO)
-- **LOO misses:** 3× Luning formation (38–39°N southern outliers) · 2× Favret elevation outliers · 1× unknown formation
+| Submodel | Domain | Training pts | LOO Recall | vs. v2 |
+|----------|--------|-------------|------------|--------|
+| North RF | Prida + Favret (≥39.5°N) | 23 | **65.2%** (15/23) | +2.7pp |
+| South RF | Luning + Gabbs (<39.5°N) | 7 | **71.4%** (5/7) | +71.4pp |
+| South SVM | tested, rejected | 7 | 0.0% | — |
 
 ---
 
-## 🗺️ Top Targets — v2 Ranking
+## The Maps
 
-| Rank | Latitude | Longitude | Comp v2 | TPI | Dist TRc | TPI Tier |
-|:----:|:--------:|:---------:|:-------:|:---:|:--------:|:--------:|
-| **#1** | **40.8228°N** | **117.6969°W** | **0.990** | **−27.2m** | **1,309m** | **1A ★★** |
-| #2 | 40.4189°N | 117.7044°W | 0.980 | −15.6m | 3,338m | 1A ★★ |
-| #3 | 40.7872°N | 117.4564°W | 0.953 | −65.4m | 13,040m | 1A ★★ |
-| #4 | 40.4047°N | 118.2439°W | 0.950 | +125.3m | 52m | X ↓ |
-| #5 | 40.2653°N | 117.4797°W | 0.943 | −14.7m | 4,157m | 1A ★★ |
-| #6 | 40.1131°N | 117.2025°W | 0.899 | −4.5m | 4,801m | 1B ★★ |
-| #7 | 40.7997°N | 118.1403°W | 0.897 | −32.0m | 14,464m | 1A ★★ |
-| #8 | 40.0956°N | 117.2456°W | 0.896 | −30.4m | 7,060m | 1A ★★ |
-| #9 | 40.2092°N | 117.5878°W | 0.895 | −1.3m | 992m | 2 |
-| #10 | 40.3719°N | 117.5769°W | 0.894 | −117.9m | 6,488m | 1A ★★ |
+### Terrain Analysis — What the Model Sees
 
-**TPI Tier:** 1A = basin floor (TPI < −10m) ★★ · 1B = lower slope (−10 to −3m) ★★ · 2 = mid slope · X = ridge/upland ↓
+<p align="center">
+  <img src="assets/terrain_overview.png" width="800" alt="PaleoWave Nevada Terrain Analysis"/>
+</p>
 
-Full 50-target ranked list: [`data/model/paleowave_v2_top50.csv`](data/model/paleowave_v2_top50.csv) · [`data/model/paleowave_v2_top50.geojson`](data/model/paleowave_v2_top50.geojson)
+*Three-panel terrain analysis across the TRc study area. Left: elevation — the Basin and Range landscape sits in a tight 1,200–2,400m band where Triassic carbonates outcrop. Center: slope — jagged red ridgelines flanking open valley floors. Right: TRI ruggedness — the single strongest predictor at ~45% feature importance. Cyan dots mark known PBDB localities. The model has learned to find terrain that looks like this.*
 
 ---
 
-## 📓 Notebooks
+### Feature Importances
 
-| # | Notebook | Description | Key Output |
-|:--|:---------|:------------|:-----------|
-| 01 | `01_pbdb_harvester.ipynb` | PBDB API harvest, Nevada ichthyosaur records | `pbdb_occurrences_clean.csv` |
-| 02 | `02_terrain_analysis_final.ipynb` | 30m terrain features at PBDB localities | `features_pbdb_terrain.csv` |
-| 03 | `03_ml_model_final.ipynb` | RF v1 training, 50 target scoring | `priority_targets.geojson`, AUC 0.906 |
-| 04 | `04_geology.ipynb` | TRc formation distance, geo_bonus | `priority_targets.geojson` updated |
-| 05 | `05_lidar_terrain_analysis.ipynb` | 15m TPI for top 20 targets + presence points | `paleowave_top20_lidar.csv`, LiDAR PNGs |
-| 06 | `06_model_v2_tpi.ipynb` | TPI post-hoc adjustment, v2 re-ranking | `paleowave_v2_top50.csv` |
-| 07 | `07_loo_validation.ipynb` | LOO recall, proper spatial background | `paleowave_rf_v2_final.joblib`, 10/16 recall |
+<p align="center">
+  <img src="outputs/feature_importance_v2.png" width="560" alt="Feature Importance"/>
+</p>
+
+*Random Forest feature importances. TRI dominates — dissected limestone terrain is the primary separator between ichthyosaur sites and background. Slope and elevation carry the next largest signals. In v3, TPI joins as a learned feature at ~10% importance, replacing the hand-coded post-hoc rule.*
 
 ---
 
-## 📁 Repository Structure
+### LOO Validation Results
+
+<p align="center">
+  <img src="outputs/loo_validation_paleowave.png" width="600" alt="Leave-One-Out Validation"/>
+</p>
+
+*Leave-one-out cross-validation. Each point is one held-out locality: correct if model score ≥ 0.5. North model correctly predicts 15 of 23. All seven literature-verified localities (LIT-001 through LIT-007) predicted correctly. Misses concentrate in NaN-formation-inferred records with less reliable coordinates.*
+
+---
+
+### TPI Distribution — The Basin Signal
+
+<p align="center">
+  <img src="outputs/tpi_distribution_paleowave.png" width="600" alt="TPI Distribution at Known Localities"/>
+</p>
+
+*Topographic Position Index at all 30 training localities. The signal is unambiguous: known ichthyosaur sites skew hard toward negative TPI — basin floors and valley bottoms. This is the geological model in action: fossils are exposed by basin exhumation, not ridge erosion. In v3 the Random Forest learns this directly rather than being told about it via a rule.*
+
+---
+
+### v1 → v2 Ranking Changes
+
+<p align="center">
+  <img src="outputs/rank_change_v1_v2.png" width="640" alt="Rank Change v1 to v2"/>
+</p>
+
+*How rankings shifted as the model evolved. Big movers tell the story: candidates that climbed were in genuine basin terrain and got rewarded when TPI was introduced; candidates that fell were inflated by high RF probability alone without the depositional environment signal. v3 continues this trend — the post-hoc rule is gone and the underlying pattern holds.*
+
+---
+
+## LiDAR Terrain Analysis
+
+LiDAR-derived DTMs at 15m resolution give a surgical look at each candidate's actual topographic context. Three panels per target: bare-earth hillshade (red = ridge/outcrop zones), TPI map (red = ridge, blue = valley), and slope. Twenty candidates analyzed and archived in `outputs/`.
+
+**The key diagnostic:** does the candidate sit in a valley floor or on a ridgeline? Ichthyosaurs sink. Their bones end up in basins. A high-scoring candidate on a ridge crest is picking up formation proximity and ruggedness signal — but without the burial environment context that actually matters. LiDAR is the ground truth check on everything the model predicts.
+
+---
+
+### P01 — 40.4047N 118.2439W
+
+<p align="center">
+  <img src="outputs/lidar_P01.png" width="800" alt="LiDAR P01"/>
+</p>
+
+*v1's top candidate. TPI = +130.1m — sitting squarely on a ridge crest (deep red in the TPI panel, red-shaded zone in the hillshade). The RF loves the ruggedness and slope here, but the basin context that drives fossil exposure is completely absent. Demoted v1#1 → v2#15 → v3#3 LOW. The most instructive false positive in the dataset: this is exactly why TPI as a direct feature matters.*
+
+---
+
+### P02 — 40.2092N 117.5878W
+
+<p align="center">
+  <img src="outputs/lidar_P02.png" width="800" alt="LiDAR P02"/>
+</p>
+
+*TPI = +105.1m, pure ridge terrain. Same story as P01. Strong RF score, wrong landform. Demoted v1#2 → v2#9. In v3, too close to a known locality (4.3km) to represent a novel find regardless of terrain.*
+
+---
+
+### P03 — 40.5503N 118.2325W
+
+<p align="center">
+  <img src="outputs/lidar_P03.png" width="800" alt="LiDAR P03"/>
+</p>
+
+*TPI = +4.4m, upper slope. Not a ridge crest, but not a basin floor either. The least-bad of the original three LiDAR targets. Holds a reasonable v3 score (0.608) driven by non-TPI features. Worth a windshield survey before committing field time.*
+
+---
+
+### P04–P20 — Full LiDAR Archive
+
+The remaining 17 analyses are in `outputs/lidar_P04.png` through `lidar_P20.png`. Each follows the same three-panel format. Coordinates and priority assessments for all 20 are in the field report: `outputs/PaleoWave_Field_Report_v3.pdf`.
+
+---
+
+## v3 Priority Targets
+
+### The ghost and the demotion
+
+**v3#2 (40.907N, 118.464W) — the ghost.** This point did not appear in the v2 top-50 at all. The v2 TPI post-hoc rule gave it a neutral score (TPI ≈ +0.9m at 90m resolution — not enough to trigger a bonus), and the base RF score alone didn't break the cutoff. The v3 model, with TPI as a direct feature and trained specifically on the north domain, scores it **second overall** — driven by elevation, slope, and TRI signal in concert. At 50.2km from the nearest known locality, it's the most geographically novel prediction in the dataset. This is exactly the kind of candidate a post-hoc rule will always miss.
+
+**v3#7 (40.787N, 117.456W) — the demotion.** This was v2 #1. The headline target, 0.853 RF score, deepest basin TPI in the top-10. In v3 it's #7 with a 0.521. What happened? The v2 composite formula stacked RF probability + geo bonus + TPI adjustment, and that candidate happened to score well on all three simultaneously. In v3, the RF re-evaluates it with TPI as a feature and finds it less exceptional than the formula made it look. Still viable at 60.3km from any known locality — just no longer the lead.
+
+### Top 10
+
+| Rank | Lat °N | Lon °W | Score | TPI m | Nearest km | Priority |
+|------|--------|--------|-------|-------|------------|----------|
+| #1 | 40.265 | 117.480 | 0.689 | −2.8 | 13.8 | ⭐ HIGH |
+| #2 | 40.907 | 118.464 | 0.660 | −2.1 | 50.2 | ⭐ HIGH — most novel |
+| #3 | 40.405 | 118.244 | 0.608 | +18.2 | 9.1 | LOW — ridge terrain |
+| #4 | 40.096 | 117.246 | 0.595 | +3.9 | 25.4 | MED |
+| #5 | 40.406 | 117.706 | 0.553 | +0.9 | 21.0 | MED |
+| #6 | 39.886 | 118.923 | 0.538 | +2.0 | 59.8 | MED |
+| #7 | 40.787 | 117.456 | 0.521 | −0.0 | 60.3 | MED — was v2 #1 |
+| #8 | 40.209 | 117.588 | 0.517 | −1.0 | 4.3 | SKIP — too close |
+| #9 | 40.401 | 117.208 | 0.515 | +1.0 | 41.0 | MED |
+| #10 | 39.655 | 117.859 | 0.504 | −3.1 | — | ⭐ HIGH — strongest basin |
+
+> ⭐ **Three HIGH targets: v3#2, v3#1, v3#10.** All three combine basin TPI, genuine distance from known localities, and consistent multi-feature RF signal. Start here.
+>
+> Full 50-target list with all fields: `data/model/paleowave_v3_top50.csv` — load into Gaia GPS, Avenza Maps, or Google Earth.
+
+---
+
+## Data Sources
+
+| Source | What | How |
+|--------|------|-----|
+| [PBDB](https://paleobiodb.org) | 30 ichthyosauria records, Nevada, Triassic | API harvest (nb 01) |
+| USGS 3DEP 1/9″ (~8m) | 6 DEM tiles → `dem_merged.tif` (2.7GB) | TNM download (nb 05) |
+| NBMG geology | TRc formation polygon | State geology layer |
+| USGS 3DEP LiDAR | 20 × 15m DTM tiles at priority targets | TNM API (nb 05) |
+| Literature | 7 localities, Merriam 1908 → Klein 2020 | Manual harvest (nb 09) |
+| iDigBio / CMC | 15 *Cymbospondylus* records — exact coords pending | API harvest (nb 08) |
+
+---
+
+## Repository Structure
 
 ```
 Project-PaleoWave/
 ├── assets/
-│   └── paleowave_flag.png
-├── data/
-│   ├── features_pbdb_terrain.csv       # 27 PBDB records with terrain features
-│   ├── lidar/                          # P##_dtm.tif — 15m GeoTIFFs
-│   ├── model/
-│   │   ├── priority_targets.geojson    # v1 50 targets
-│   │   ├── paleowave_v2_top50.csv      # v2 ranked targets with TPI
-│   │   ├── paleowave_v2_top50.geojson  # v2 GeoJSON for GPS/QGIS
-│   │   ├── paleowave_rf_v2_final.joblib
-│   │   ├── paleowave_loo_results.csv
-│   │   └── paleowave_all50_tpi.csv
-│   └── pbdb/
-│       ├── pbdb_occurrences_clean.csv
-│       ├── pbdb_presence_tpi.csv
-│       └── paleowave_background_proper.csv
+│   ├── paleowave_flag.png
+│   ├── paleowave_banner.png
+│   ├── Project_Paleo_banner_v2.png
+│   └── terrain_overview.png
 ├── notebooks/
-│   └── 01–07 (see table above)
+│   ├── 01_pbdb_harvest.ipynb
+│   ├── 02_background_sampling.ipynb
+│   ├── 03_terrain_features.ipynb
+│   ├── 04_model_v1.ipynb
+│   ├── 05_lidar_tpi.ipynb
+│   ├── 06_model_v2_tpi.ipynb
+│   ├── 07_loo_validation.ipynb
+│   ├── 08_idigbio_harvest.ipynb
+│   ├── 09_literature_harvest.ipynb
+│   └── 10_model_v3_stratified.ipynb    ← Phase 3
+├── data/
+│   ├── pbdb/
+│   │   ├── pbdb_occurrences_clean.csv
+│   │   └── paleowave_background_proper.csv
+│   ├── dem/
+│   │   └── dem_merged.tif              (2.7GB — add to .gitignore)
+│   ├── terrain/
+│   │   ├── elevation_v3.tif            (re-derived at 90m, BigTIFF)
+│   │   ├── slope_v3.tif
+│   │   ├── aspect_v3.tif
+│   │   ├── tri_v3.tif
+│   │   └── tpi_v3.tif                  (new in v3)
+│   └── model/
+│       ├── paleowave_rf_v3_north.joblib
+│       ├── paleowave_rf_v3_south.joblib
+│       ├── paleowave_v3_top50.csv
+│       ├── paleowave_v3_loo_results.csv
+│       └── paleowave_v3_training_features.csv
 └── outputs/
-    ├── PaleoWave_Field_Report_v2.pdf
-    ├── lidar_P01.png … lidar_P20.png
-    ├── tpi_distribution_paleowave.png
+    ├── PaleoWave_Field_Report_v3.pdf
+    ├── lidar_P01.png  …  lidar_P20.png
     ├── feature_importance_v2.png
+    ├── loo_validation_paleowave.png
+    ├── tpi_distribution_paleowave.png
     ├── rank_change_v1_v2.png
-    └── loo_validation_paleowave.png
+    ├── paleowave_targets.gpx
+    └── paleowave_targets.kmz
 ```
 
 ---
 
-## 🔧 Navigation
+## Known Localities
 
-**QGIS:** Load `paleowave_v2_top50.geojson` → style by `composite_v2` → filter `tpi_tier IN ('1A','1B')` for basin-confirmed targets only.
+Thirty PBDB records across four formations, supplemented by seven literature localities cross-checked during Phase 2. All seven were already in PBDB — zero net new records, but independent georeferencing validation. One formation fix applied: `occ:1186493` (*C. nevadanus*, New Pass, Lander Co.) had a null formation field, corrected to Prida from Merriam 1908.
 
-**Gaia GPS / Avenza:** Import GeoJSON directly. Each waypoint labeled `PW-##` with composite score in description field.
+| Formation | n | Key taxa | Domain |
+|-----------|---|----------|--------|
+| Prida | 10 | *Cymbospondylus* | North |
+| Favret | 7 | *Cymbospondylus*, *Augustasaurus*, *Thalattoarchon* | North |
+| Luning | 6 | *Shonisaurus popularis* | South |
+| Gabbs | 1 | *Shonisaurus* | South |
+| NaN → inferred | 6 | mixed | mixed |
 
-**Google Earth:** Drag GeoJSON into Earth — targets display with score attributes in popup.
+**Pending:** Cincinnati Museum Center (CMC) holds 15 *Cymbospondylus* specimens from the Favret Formation (VP6396–VP13158). Coordinates in iDigBio are formation centroids only. Email sent to C. Schwalbach (Collections Manager) and Dr. G. Storrs (Curator, Vertebrate Paleontology) requesting precise locality data. Model will retrain when received.
 
----
-
-## ⚠️ Disclaimers
-
-**PRPA PERMITS REQUIRED** — Vertebrate fossil collection on federal land requires a permit under the Paleontological Resources Preservation Act. Unpermitted collection is a federal crime. Contact BLM Battle Mountain and Tonopah Field Offices before collecting.
-
-**VERIFY LAND OWNERSHIP** — Coordinates are geographic analysis only. Land ownership not verified. Sites may be BLM, USFS, tribal, state, or private. Verify via BLM GeoCommunicator before entry.
-
-**REMOTE TERRAIN** — Great Basin sites: no cell service, extreme heat, flash flood risk. Carry satellite communicator, 4L+ water/person/day, first aid. Do not go alone.
-
-**MODEL LIMITATIONS** — Terrain features only. 18 training localities. Luning/Gabbs recall = 0% — do not use for southern formation targets without a formation-specific sub-model. Predictions are not guarantees.
-
-Full legal disclaimers in [Field Report v2](outputs/PaleoWave_Field_Report_v2.pdf).
+**Also pending:** FMNH locality data for PR2251 (*C. nichollsi*) and PR3032 (*Thalattoarchon saurophagis*) — exact coordinates on file at the Field Museum per Klein 2020 and Frobisch 2013.
 
 ---
 
-## 📡 Data Sources
+## Phase History
 
-| Dataset | Source | Resolution |
-|:--------|:-------|:----------:|
-| Ichthyosaur occurrences | [PBDB](https://paleobiodb.org) | Point |
-| Terrain (30m) | USGS NED via TNM | 30m |
-| Terrain (15m LiDAR) | USGS 3DEP via TNM ImageServer | 15m |
-| Triassic formation extent | NBMG Nevada Geologic Map (TRc) | 1:500k |
-
----
-
-## 🔭 Phase 3 Roadmap
-
-- **Formation-stratified model** — separate Prida/Favret (north) and Luning/Gabbs (south) sub-models to address 0% Luning recall
-- **Lithology-matched background** — sample background from carbonate terrain only, not random Nevada pixels
-- **Expanded training data** — field-verified new localities submitted to PBDB and used for retraining
-- **Structural geology integration** — incorporate formation dip/strike data to identify plunge-out zones
+| Phase | Key deliverable | Status |
+|-------|----------------|--------|
+| 1 | v1 RF, AUC 0.906, top-50 candidates, 4 terrain features | ✅ Complete |
+| 2 | LiDAR TPI analysis (20 targets), v2 composite score, LOO validation, iDigBio + literature sweep | ✅ Complete |
+| **3** | **Formation-stratified v3 · TPI direct feature · north 65.2% / south 71.4% LOO · terrain re-derived at 90m** | ✅ **Complete** |
+| 4 | Full TRc raster scan with v3 models | ⏳ Planned |
+| 4 | Retrain with CMC exact localities | ⏳ Waiting on CMC |
+| 4 | FMNH locality request (PR2251, PR3032) | ⏳ Not yet sent |
 
 ---
 
-<div align="center">
+## The Geology in One Paragraph
 
-*Project PaleoWave — ML-assisted ichthyosaur locality prediction, central Nevada*
-*PBDB · USGS 3DEP · NBMG · github.com/bdgroves/Project-PaleoWave*
+The Middle Triassic Prida Formation and its lateral equivalents — Favret, Luning, Gabbs — were deposited on a carbonate ramp on the western margin of Pangea. Water depths ranged from shallow platform to several hundred meters in the basinal facies. Ichthyosaurs are found in the deeper-water carbonate mudstone: dark micritic limestone with occasional concentrated bone horizons, interpreted as mass strandings or carcass-fall accumulation. The Nevada finds are globally significant. *Shonisaurus popularis* at Berlin-Ichthyosaur is the largest known Triassic ichthyosaur. *Thalattoarchon saurophagis* from the Favret Formation is one of the earliest macropredatory apex predators of the Mesozoic — the ichthyosaur that ate other ichthyosaurs. Erosion rates in the Basin and Range are high enough that new exposures are geologically continuous. They just need someone to walk to them.
 
-</div>
+---
+
+## Field Use
+
+Any vertebrate fossil collection on federal land requires a PRPA permit. Any finds should be reported to the relevant BLM field office and submitted to PBDB. This project predicts where to look — it does not collect.
+
+Load `paleowave_v3_top50.csv` into Gaia GPS, Avenza Maps, or Google Earth. Full field report with target coordinates, legal disclaimers, and safety information: `outputs/PaleoWave_Field_Report_v3.pdf`.
+
+---
+
+<p align="center">
+  <img src="assets/Project_Paleo_banner_v2.png" width="640" alt="Project PaleoWave"/>
+</p>
+
+<p align="center">
+  <sub>
+    Project PaleoWave · Phase 3 complete · github.com/bdgroves/Project-PaleoWave<br>
+    Data: PBDB · USGS 3DEP · NBMG · iDigBio · Literature
+  </sub>
+</p>
