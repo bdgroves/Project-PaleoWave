@@ -1,6 +1,6 @@
 <div align="center">
 
-![PaleoWave Flag](assets/paleowave_flag.png)
+![PaleoWave Flag](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/assets/paleowave_flag.png)
 
 # 🦕 Project PaleoWave
 
@@ -39,7 +39,7 @@ TPI (Topographic Position Index) at 15m resolution from USGS 3DEP measures how m
 ### P01 — v1 Priority #1 (TPI-penalized in v2)
 *40.4047°N, 118.2439°W · TPI=+130.1m · 52m from TRc · v1 score=1.000 → v2 #4*
 
-![P01 LiDAR](outputs/lidar_P01.png)
+![P01 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P01.png)
 
 > **Ridge crest terrain** — TPI=+130m places this target on the Humboldt Range backbone, not a basin floor. High ML probability and tight formation proximity drove the v1 ranking. The v2 TPI penalty (-0.05) correctly demotes it. The formation here may be dipping away from surface exposure.
 
@@ -48,7 +48,7 @@ TPI (Topographic Position Index) at 15m resolution from USGS 3DEP measures how m
 ### P02 — v1 Priority #2
 *40.2092°N, 117.5878°W · TPI=+105.1m · 992m from TRc · v1 score=0.895 → v2 #9*
 
-![P02 LiDAR](outputs/lidar_P02.png)
+![P02 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P02.png)
 
 > **Ridge crest terrain** — 992m from TRc with strong ML probability, but positive TPI indicates upland position. No TPI adjustment applied (992m is inside 15km threshold but TPI > +3m triggers -0.05 penalty). Rank dropped 7 places in v2.
 
@@ -57,7 +57,7 @@ TPI (Topographic Position Index) at 15m resolution from USGS 3DEP measures how m
 ### P03 — v1 Priority #3
 *40.5503°N, 118.2325°W · TPI=+4.4m · 1,361m from TRc · v1 score=0.895 → v2 #14*
 
-![P03 LiDAR](outputs/lidar_P03.png)
+![P03 LiDAR](https://raw.githubusercontent.com/bdgroves/Project-PaleoWave/main/outputs/lidar_P03.png)
 
 > **Upper slope terrain** — marginally positive TPI, sitting on the formation margin. The hillshade shows dissected limestone terrain to the east with flatter basin floor approaching from the west. TPI penalty -0.05 applied; dropped 11 places in v2.
 
