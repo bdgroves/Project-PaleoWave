@@ -63,7 +63,7 @@ RF params:    n=500 trees · max_depth=6 · balanced class weights · seed=42
 ### Terrain Analysis — What the Model Sees
 
 <p align="center">
-  <img src="assets/terrain_overview.png" width="800" alt="PaleoWave Nevada Terrain Analysis"/>
+  <img src="data/terrain/terrain_overview.png" width="800" alt="PaleoWave Nevada Terrain Analysis"/>
 </p>
 
 *Three-panel terrain analysis across the TRc study area. Left: elevation — the Basin and Range landscape sits in a tight 1,200–2,400m band where Triassic carbonates outcrop. Center: slope — jagged red ridgelines flanking open valley floors. Right: TRI ruggedness — the single strongest predictor at ~45% feature importance. Cyan dots mark known PBDB localities. The model has learned to find terrain that looks like this.*

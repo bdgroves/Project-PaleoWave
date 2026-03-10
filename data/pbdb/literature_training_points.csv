@@ -1,0 +1,2 @@
+occurrence_id,taxon_name,formation,latitude,longitude,coord_unc_m,source,in_pbdb,usable
+LIT-NP-001,Cymbospondylus nevadanus,Prida,39.607,-117.478,5000,Merriam 1908,False,True
